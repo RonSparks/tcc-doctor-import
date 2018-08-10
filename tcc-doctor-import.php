@@ -57,6 +57,7 @@ class TCC_Doctor_Import
 
 		if ( ! empty( $_FILES ) ) 
 		{
+			echo 'Current PHP version: ' . phpversion() . "<p/>";
 			$result = $this->upload_the_file();
 			echo ("File is valid, and was successfully uploaded as " . $result["file"] . "<p/>");
 			$this->process_doctor_import($result["file"]);
@@ -161,7 +162,7 @@ class TCC_Doctor_Import
 		    require_once( ABSPATH . 'wp-admin/includes/file.php' );
 		}
 
-		add_filter( 'upload_dir', 'set_upload_dir' );
+		add_filter('upload_dir', 'set_upload_dir' );
 		add_filter('upload_mimes', 'enable_extended_upload');
 
 		$uploadedfile = $_FILES['file'];
