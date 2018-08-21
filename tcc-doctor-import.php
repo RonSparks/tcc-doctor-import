@@ -78,11 +78,17 @@ class TCC_Doctor_Import
         $slug = "doctors-" . strtolower(str_replace(" ","-",$doctorName));
         $specialty = $doctor['SPECIALTY'];
         $profileBlock = $doctor['PROFILE_BLOCK'];
+        $emailAddress = $doctor['EMAIL'];
+        $location = explode(",", $doctor['LOCATION']);
+        $city = $location[0];
+        $state = $location[1];
 
         $page = get_page_by_path( $slug );
 
         if ( $page->ID === NULL) 
         {
+        	echo (" - New Page - creating");
+
 	        $page_id = wp_insert_post (array 
 	        		(
 	        			'post_title' => $doctorName,
@@ -92,25 +98,51 @@ class TCC_Doctor_Import
 	        			'post_content' => $profileBlock
 	        		)
 	        	);
+	    }
+	    else
+        {
+        	echo (" - page already exists, updating");
+
+        	 $page_id = wp_insert_post (array 
+	        		(
+	        			'ID' => $page->ID,
+	        			'post_title' => $doctorName,
+	        			'post_type' => 'page',
+	        			'post_name' => $slug,
+	        			'post_status'=> 'publish',
+	        			'post_content' => $profileBlock
+	        		)
+	        	);
+        }
 
 	        //set the page template to apply
 	        if( -1 != $page_id ) 
 	        {
 	        	add_post_meta( $page_id, '_wp_page_template',  'page-md-profile.php' );
 
+	        	//add the page city tag
+	        	if (strlen(trim($city)) > 0) wp_set_post_tags($page_id, $city);
+
+	        	//add the page state category
+				$categoryId1 = get_cat_ID($state);
+				$categoryId2 = get_cat_ID('United States of America');
+
+				if ($categoryId1 > 0) 
+					{
+						wp_set_post_categories($page_id, $categoryId1, true);
+						wp_set_post_categories($page_id, $categoryId2, true);
+					}
+
 	        	//set the ACF values
 				update_field( 'doctors_name', $doctorName, $page_id );
 				update_field( 'specialty', $specialty, $page_id );
 				update_field( 'affiliation', $affiliation, $page_id );
 				update_field( 'telephone', $telephone, $page_id );
+				update_field( 'email_address', $emailAddress, $page_id );
+				update_field( 'doctor_id', $doctorId, $page_id );
 
 	        	$return = true;
 	        }
-        }
-        else
-        {
-        	echo (" - page already exists");
-        }
 
 		return $return;
 	}
