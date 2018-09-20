@@ -1,14 +1,22 @@
 <?php
 /**
  * Plugin Name: TCC Doctor Import
- * Plugin URI: http://sparkstek.com/tcc-doctor-import
+ * Plugin URI: http://sparkstek.com/wordpress/plugins/tcc-doctor-import
  * Description: Import plugin to create doctor profiles based on a file upload.
- * Version: 1.0
+ * Version: 1.3
  * Author: Ron Sparks
  * Author URI: http://www.sparkstek.com
  */
 
 if( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
+
+//error handler function
+function customError($errno, $errstr) {
+  if ($errno != 8192 and $errno != 8) {echo "<b>Error:</b> [$errno] $errstr";}
+}
+
+//set error handler
+set_error_handler("customError");
 
 class TCC_Doctor_Import
 {
@@ -64,14 +72,15 @@ class TCC_Doctor_Import
 		}
 	}
 
-
 	public function create_doctor_page($doctor)
 	{
 		$return = false;
+		$thumbnail_id = 30; //magic number
 
 		//get values from the $doctors array
+		$featuredImage = $doctor['FEATURED_IMAGE'];
 	    $doctorId = $doctor['DOCTOR_ID'];
-        $telephone = $doctor['TELEPHONE'];
+        $telephone = $this->format_telephone_number($doctor['TELEPHONE']);
         $bannerImage = $doctor['BANNER_IMAGE'];
         $affiliation = $doctor['AFFILIATION'];
         $doctorName = $doctor['NAME'];
@@ -118,6 +127,15 @@ class TCC_Doctor_Import
 	        //set the page template to apply
 	        if( -1 != $page_id ) 
 	        {
+	        	if ($featuredImage != '')
+	        	{	
+	        		$found_thumbnail_id = attachment_url_to_postid($featuredImage);
+	        		if ($found_thumbnail_id == 0) { $found_thumbnail_id = $thumbnail_id; }
+	        	}
+	        	else
+	        		{ $found_thumbnail_id = $thumbnail_id; }
+
+	        	set_post_thumbnail( $page_id, $found_thumbnail_id );
 	        	add_post_meta( $page_id, '_wp_page_template',  'page-md-profile.php' );
 
 	        	//add the page city tag
@@ -145,6 +163,29 @@ class TCC_Doctor_Import
 	        }
 
 		return $return;
+	}
+
+	public function format_telephone_number ($number)
+	{
+		$number = trim($number);
+		
+		echo (" " . $number . " --> ");
+
+		if(ctype_digit($number) && strlen($number) == 10) 
+		{
+	  		$number = substr($number, 0, 3) .'-'. substr($number, 3, 3) .'-'. substr($number, 6);
+		} 
+		else 
+		{
+			if(ctype_digit($number) && strlen($number) == 7) 
+			{
+				$number = substr($number, 0, 3) .'-'. substr($number, 3, 4);
+			}
+		}
+
+		echo ($number);
+
+		return $number;
 	}
 
 	public function process_doctor_import ($filename)
