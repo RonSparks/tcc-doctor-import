@@ -75,7 +75,7 @@ class TCC_Doctor_Import
 	public function create_doctor_page($doctor)
 	{
 		$return = false;
-		$thumbnail_id = 30; //magic number
+		$thumbnail_id = 30; //magic number for an image that exists in wordpress as a default
 
 		//get values from the $doctors array
 		$featuredImage = $doctor['FEATURED_IMAGE'];
