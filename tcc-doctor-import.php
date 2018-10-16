@@ -78,10 +78,9 @@ class TCC_Doctor_Import
 		$thumbnail_id = 30; //magic number for an image that exists in wordpress as a default
 
 		//get values from the $doctors array
-		$featuredImage = $doctor['FEATURED_IMAGE'];
+		$featuredImage = $doctor['BANNER_IMAGE'];
 	    $doctorId = $doctor['DOCTOR_ID'];
         $telephone = $this->format_telephone_number($doctor['TELEPHONE']);
-        $bannerImage = $doctor['BANNER_IMAGE'];
         $affiliation = $doctor['AFFILIATION'];
         $doctorName = $doctor['NAME'];
         $slug = "doctors-" . strtolower(str_replace(" ","-",$doctorName));
@@ -129,11 +128,16 @@ class TCC_Doctor_Import
 	        {
 	        	if ($featuredImage != '')
 	        	{	
-	        		$found_thumbnail_id = attachment_url_to_postid($featuredImage);
+	        		$featuredImageUrl = siteURL() . "wp-content/uploads/" . strtolower($featuredImage);
+	        		$found_thumbnail_id = attachment_url_to_postid($featuredImageUrl);
+
 	        		if ($found_thumbnail_id == 0) { $found_thumbnail_id = $thumbnail_id; }
 	        	}
 	        	else
 	        		{ $found_thumbnail_id = $thumbnail_id; }
+
+	        	
+	        	echo (" - thumbnail Id: " . $found_thumbnail_id);
 
 	        	set_post_thumbnail( $page_id, $found_thumbnail_id );
 	        	add_post_meta( $page_id, '_wp_page_template',  'page-md-profile.php' );
@@ -283,6 +287,13 @@ class TCC_Doctor_Import
 
 		return $mime_types;
 
+	}
+
+	function siteURL()
+	{
+	    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
+	    $domainName = $_SERVER['HTTP_HOST'].'/';
+	    return $protocol.$domainName;
 	}
 
 ?>
