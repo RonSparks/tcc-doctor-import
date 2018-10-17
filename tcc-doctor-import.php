@@ -83,15 +83,16 @@ class TCC_Doctor_Import
         $telephone = $this->format_telephone_number($doctor['TELEPHONE']);
         $affiliation = $doctor['AFFILIATION'];
         $doctorName = $doctor['NAME'];
-        $slug = "doctors-" . strtolower(str_replace(" ","-",$doctorName));
         $specialty = $doctor['SPECIALTY'];
+        $slug = $specialty . "-" . strtolower(str_replace(" ","-",str_replace(",", "-", $doctorName)));
+        $doctorName .= ", MD";
         $profileBlock = $doctor['PROFILE_BLOCK'];
         $emailAddress = $doctor['EMAIL'];
         $location = explode(",", $doctor['LOCATION']);
         $city = $location[0];
         $state = $location[1];
 
-        $page = get_page_by_path( $slug );
+        $page = get_page_by_path( iconv('UTF-8', 'ISO-8859-1//TRANSLIT//IGNORE', $slug) );
 
         if ( $page->ID === NULL) 
         {
@@ -102,7 +103,7 @@ class TCC_Doctor_Import
 	        			'post_title' => $doctorName,
 	        			'post_type' => 'page',
 	        			'post_name' => $slug,
-	        			'post_status'=> 'publish',
+	        			'post_status'=> 'draft',
 	        			'post_content' => $profileBlock
 	        		)
 	        	);
@@ -117,7 +118,7 @@ class TCC_Doctor_Import
 	        			'post_title' => $doctorName,
 	        			'post_type' => 'page',
 	        			'post_name' => $slug,
-	        			'post_status'=> 'publish',
+	        			'post_status'=> 'draft',
 	        			'post_content' => $profileBlock
 	        		)
 	        	);
@@ -143,7 +144,10 @@ class TCC_Doctor_Import
 	        	add_post_meta( $page_id, '_wp_page_template',  'page-md-profile.php' );
 
 	        	//add the page city tag
-	        	if (strlen(trim($city)) > 0) wp_set_post_tags($page_id, $city);
+	        	if (strlen(trim($city)) > 0) wp_set_post_tags($page_id, $city, true);
+
+	        	//add the specialty as a tag
+	        	if (strlen(trim($specialty)) > 0) wp_set_post_tags($page_id, $specialty, true);
 
 	        	//add the page state category
 				$categoryId1 = get_cat_ID($state);
@@ -172,8 +176,6 @@ class TCC_Doctor_Import
 	public function format_telephone_number ($number)
 	{
 		$number = trim($number);
-		
-		echo (" " . $number . " --> ");
 
 		if(ctype_digit($number) && strlen($number) == 10) 
 		{
@@ -186,8 +188,6 @@ class TCC_Doctor_Import
 				$number = substr($number, 0, 3) .'-'. substr($number, 3, 4);
 			}
 		}
-
-		echo ($number);
 
 		return $number;
 	}
