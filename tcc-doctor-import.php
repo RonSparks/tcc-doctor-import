@@ -3,7 +3,7 @@
  * Plugin Name: TCC Doctor Import
  * Plugin URI: http://sparkstek.com/wordpress/plugins/tcc-doctor-import
  * Description: Import plugin to create doctor profiles based on a file upload.
- * Version: 1.3
+ * Version: 1.4
  * Author: Ron Sparks
  * Author URI: http://www.sparkstek.com
  */
@@ -84,7 +84,7 @@ class TCC_Doctor_Import
         $affiliation = $doctor['AFFILIATION'];
         $doctorName = $doctor['NAME'];
         $specialty = $doctor['SPECIALTY'];
-        $slug = $specialty . "-" . strtolower(str_replace(" ","-",str_replace(",", "-", $doctorName)));
+        $slug = sanitize_title($specialty . "-" . $doctorName);
         $doctorName .= ", MD";
         $profileBlock = $doctor['PROFILE_BLOCK'];
         $emailAddress = $doctor['EMAIL'];
@@ -92,7 +92,7 @@ class TCC_Doctor_Import
         $city = $location[0];
         $state = $location[1];
 
-        $page = get_page_by_path( iconv('UTF-8', 'ISO-8859-1//TRANSLIT//IGNORE', $slug) );
+        $page = get_page_by_path( $slug );
 
         if ( $page->ID === NULL) 
         {
@@ -118,7 +118,6 @@ class TCC_Doctor_Import
 	        			'post_title' => $doctorName,
 	        			'post_type' => 'page',
 	        			'post_name' => $slug,
-	        			'post_status'=> 'draft',
 	        			'post_content' => $profileBlock
 	        		)
 	        	);
